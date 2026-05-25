@@ -1,0 +1,24 @@
+{
+  "categories": [
+    {
+      "id": "cuisine",
+      "label": "Cuisine",
+      "options": ["Italian", "Mexican", "Indian", "Chinese", "American"]
+    },
+    {
+      "id": "mealType",
+      "label": "Meal Type",
+      "options": ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Beverage"]
+    },
+    {
+      "id": "allergens",
+      "label": "Allergens",
+      "options": ["Dairy Free", "Egg Free", "Gluten Free", "Nut Free", "Peanut Free", "Soy Free", "Fish Free", "Shellfish Free", "Sesame Free"]
+    },
+    {
+      "id": "diet",
+      "label": "Diet",
+      "options": ["Vegetarian", "Vegan", "Pescatarian", "Keto"]
+    }
+  ]
+}

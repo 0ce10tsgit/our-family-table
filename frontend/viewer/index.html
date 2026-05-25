@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipe Viewer — Our Family Table</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: #2b2b2b;
+      background: #fcfcfa;
+      line-height: 1.5;
+    }
+
+    header {
+      padding: 2rem 2rem 1rem;
+      border-bottom: 1px solid #e5e5e5;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+    }
+
+    .keywords {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 1.5rem 2rem;
+    }
+
+    .keyword-card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      background: #fff;
+      font-size: 0.9rem;
+    }
+
+    /* Centered square photo with the author card floating on top */
+    .recipe-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    .photo-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 640px;   /* scaled down */
+    }
+
+    .recipe-photo {
+      aspect-ratio: 4 / 3;   /* iPhone landscape photo ratio */
+      border-radius: 12px;
+      background: linear-gradient(135deg, #f4d9c6, #e8b79a);
+    }
+
+    .author-card {
+      position: absolute;
+      top: 1.25rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 0.75rem 1.25rem;
+      background: #fff;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+      white-space: nowrap;
+    }
+
+    .author-card .avatar {
+      flex: 0 0 52px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #d9cabd;
+    }
+
+    .author-card .name {
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .bio-card {
+      max-width: 640px;   /* match the photo width */
+      color: #4a4a4a;
+    }
+
+    .bio-card p {
+      margin: 0;
+    }
+
+    /* Ingredients + chef note, side by side */
+    .recipe-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2.5rem;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem 2.5rem;
+    }
+
+    .ingredients {
+      flex: 1 1 300px;
+    }
+
+    .ingredients h2 {
+      margin: 0 0 1rem;
+    }
+
+    .ingredient-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .ingredient {
+      display: flex;
+      align-items: center;
+      gap: 1rem;                 /* name and quantity sit close together */
+      padding: 0.65rem 0;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .ing-name {
+      min-width: 120px;          /* keeps the quantities lined up */
+    }
+
+    .ing-qty {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      white-space: nowrap;
+    }
+
+    .unit-select {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 0.25rem 0.4rem;
+      background: #fff;
+      font: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .detail-col {
+      flex: 1 1 260px;
+      align-self: flex-start;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .recipe-description,
+    .chef-note {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      background: #fff;
+    }
+
+    .recipe-description h2,
+    .chef-note h2 {
+      margin: 0 0 0.75rem;
+    }
+
+    .recipe-description p,
+    .chef-note p {
+      margin: 0;
+      color: #4a4a4a;
+    }
+
+    /* Steps — numbered, one by one */
+    .steps {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 2rem 3rem;
+    }
+
+    .steps h2 {
+      margin: 0 0 1.25rem;
+    }
+
+    .step-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      counter-reset: step;
+    }
+
+    .step-list li {
+      counter-increment: step;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .step-list li::before {
+      content: counter(step);
+      flex: 0 0 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      background: #2b2b2b;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    /* Checkable ingredients */
+    .ing-check {
+      flex: 0 0 auto;
+      width: 1.1rem;
+      height: 1.1rem;
+      cursor: pointer;
+    }
+
+    .ingredient:has(.ing-check:checked) .ing-name {
+      text-decoration: line-through;
+      color: #aaa;
+    }
+
+    /* Cross-out-able steps (click the text to toggle) */
+    .step-list li label {
+      flex: 1;
+      cursor: pointer;
+    }
+
+    .step-list li label input {
+      display: none;
+    }
+
+    .step-list li:has(:checked)::before {
+      background: #bbb;
+    }
+
+    .step-list li:has(:checked) label {
+      text-decoration: line-through;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Recipe Name</h1>
+  </header>
+
+  <section class="keywords">
+    <div class="keyword-card">Italian</div>
+    <div class="keyword-card">Dinner</div>
+    <div class="keyword-card">Vegetarian</div>
+    <div class="keyword-card">Nut Free</div>
+    <div class="keyword-card">Dairy Free</div>
+  </section>
+
+  <section class="recipe-body">
+    <div class="photo-wrap">
+      <div class="author-card">
+        <div class="avatar"></div>
+        <div class="name">Author Name</div>
+      </div>
+      <div class="recipe-photo"></div>
+    </div>
+
+    <div class="bio-card">
+      <p>
+        A bright, no-cook dish built on creamy butter beans instead of
+        seafood — tossed in a tomato-lime dressing with red onion, jalapeño,
+        and avocado. It's fresh, a little spicy, and comes together in a
+        single bowl. Serve it cold with tortilla chips or piled onto tostadas.
+      </p>
+    </div>
+  </section>
+
+  <section class="recipe-details">
+    <div class="ingredients">
+    <h2>Ingredients</h2>
+    <ul class="ingredient-list">
+      <li class="ingredient">
+        <input type="checkbox" class="ing-check">
+        <span class="ing-name">Butter beans</span>
+        <span class="ing-qty">
+          2
+          <select class="unit-select">
+            <option>cans</option>
+            <option>cups</option>
+            <option>g</option>
+          </select>
+        </span>
+      </li>
+      <li class="ingredient">
+        <input type="checkbox" class="ing-check">
+        <span class="ing-name">Red onion</span>
+        <span class="ing-qty">
+          1
+          <select class="unit-select">
+            <option>whole</option>
+            <option>cups</option>
+          </select>
+        </span>
+      </li>
+      <li class="ingredient">
+        <input type="checkbox" class="ing-check">
+        <span class="ing-name">Jalapeño</span>
+        <span class="ing-qty">
+          2
+          <select class="unit-select">
+            <option>whole</option>
+            <option>tbsp</option>
+          </select>
+        </span>
+      </li>
+      <li class="ingredient">
+        <input type="checkbox" class="ing-check">
+        <span class="ing-name">Avocado</span>
+        <span class="ing-qty">
+          1
+          <select class="unit-select">
+            <option>whole</option>
+            <option>cups</option>
+          </select>
+        </span>
+      </li>
+      <li class="ingredient">
+        <input type="checkbox" class="ing-check">
+        <span class="ing-name">Lime juice</span>
+        <span class="ing-qty">
+          3
+          <select class="unit-select">
+            <option>tbsp</option>
+            <option>ml</option>
+            <option>cups</option>
+          </select>
+        </span>
+      </li>
+      <li class="ingredient">
+        <input type="checkbox" class="ing-check">
+        <span class="ing-name">Olive oil</span>
+        <span class="ing-qty">
+          2
+          <select class="unit-select">
+            <option>tbsp</option>
+            <option>ml</option>
+          </select>
+        </span>
+      </li>
+      <li class="ingredient">
+        <input type="checkbox" class="ing-check">
+        <span class="ing-name">Salt</span>
+        <span class="ing-qty">
+          1
+          <select class="unit-select">
+            <option>tsp</option>
+            <option>g</option>
+          </select>
+        </span>
+      </li>
+    </ul>
+    </div>
+
+    <div class="detail-col">
+      <aside class="recipe-description">
+        <h2>About the Author</h2>
+        <p>
+          Maria has spent the better part of three decades coaxing flavor out of
+          whatever the season happens to offer. She learned to cook at her
+          grandmother's elbow in a small kitchen where nothing was measured and
+          everything was tasted, a habit she has never quite managed to break.
+          After culinary school she worked the line at a handful of restaurants
+          before deciding that the food she cared about most was the kind made for
+          the people she loved, served at a crowded table on a slow Sunday
+          afternoon. These days she develops recipes from home, testing each one
+          until it is simple enough for a weeknight yet special enough to be worth
+          remembering. She believes good food does not need to be complicated,
+          only honest, and that the best dishes are the ones that get handed down
+          and quietly improved by the next person to make them. When she is not in
+          the kitchen she is usually in the garden, arguing with the tomatoes, or
+          hunting through old cookbooks for ideas worth stealing. She hopes the
+          recipes she shares here find their way onto your table and become, in
+          time, a little bit yours.
+        </p>
+      </aside>
+
+      <aside class="chef-note">
+        <h2>Note from the Chef</h2>
+        <p>
+          This one comes together fast, so prep everything before you start —
+          once the beans hit the dressing you'll want to serve it within the hour.
+          If you like more heat, leave the jalapeño seeds in; for a milder bowl,
+          scoop them out. Leftovers keep for a day, but the avocado is happiest
+          the moment it's added.
+        </p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="steps">
+    <h2>Steps</h2>
+    <ol class="step-list">
+      <li><label><input type="checkbox">Drain and rinse the butter beans, then add them to a large bowl.</label></li>
+      <li><label><input type="checkbox">Thinly slice the red onion and jalapeño and add them to the bowl.</label></li>
+      <li><label><input type="checkbox">Dice the tomato and avocado, then fold them in gently.</label></li>
+      <li><label><input type="checkbox">Pour over the lime juice and olive oil, then season with salt.</label></li>
+      <li><label><input type="checkbox">Toss to combine and let sit for 10 minutes so the flavors meld.</label></li>
+      <li><label><input type="checkbox">Taste, adjust the seasoning, and serve cold with tortilla chips.</label></li>
+    </ol>
+  </section>
+</body>
+</html>
